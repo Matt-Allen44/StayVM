@@ -7,8 +7,9 @@ Stay <FILE_NAME>.stay
 ```
 
 #Example Programs
-**Infinite Incremental Loop**
 
+**Infinite Incremental Loop**
+```
 0	|		PUSH, 1,	//PLACE 1 ON THE STACK
 2	|		GET, 0,		//GET FROM 0 IN THE HEAP 
 4	|		ADD,		//ADD 1 AND GET0 TOGETHER
@@ -16,15 +17,16 @@ Stay <FILE_NAME>.stay
 7	|		CLRS,		//CLEAR STACK AND RESET
 8	|		GOTO, 0,	//LOOP BACK TO START
 10	|		HALT,		//EXIT (NEVER REACHED)
+```
 
 **Add/Subtract and Print**
-
+```
 0	|		PUSH, 1,	//PLACE 1 ON THE STACK
 2	|		PUSH, 2,	//PLACE 2 ON THE STACK
 4	|		ADD/SUB,		//ADD/SUB 1 AND 2
 5	|		PRINT,		//PRINT SUM
 6	|		HALT,		//EXIT
-
+```
 
 
 #Runtime
