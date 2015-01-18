@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 )
 
 type stayVM struct {
@@ -22,7 +24,7 @@ type stayVM struct {
 
 func (vm *stayVM) trace() {
 	if vm.shouldTrace {
-		fmt.Println("\n[SL:", vm.sl, "] -> ", vm.stack, "\n")
+		fmt.Println("\n[SL:", vm.sl, "/", len(vm.stack), "] -> ", vm.stack, "")
 		fmt.Print(vm.pl, " | ", vm.opps[vm.program[vm.pl]])
 
 		if vm.oppsArg[vm.program[vm.pl]] > 0 {
@@ -31,10 +33,22 @@ func (vm *stayVM) trace() {
 	}
 }
 
+func (vm *stayVM) checkStack() {
+	if vm.sl >= len(vm.stack)-10 {
+		var s string = "\n[ERROR] STAY_VM: STACK OVERFLOW - SL " + strconv.Itoa(vm.sl) + "/" + strconv.Itoa(len(vm.stack))
+		fmt.Println(s)
+		os.Exit(1)
+	}
+}
+
 func (vm *stayVM) run(program []int) {
+	fmt.Println("\n> STAY_VM STARTED\n")
 	vm.program = program
 	for {
+
 		vm.trace()
+		vm.checkStack()
+
 		switch vm.program[vm.pl] {
 
 		// PUSHES VALUE TO STACK
@@ -78,20 +92,58 @@ func (vm *stayVM) run(program []int) {
 			fmt.Println(vm.stack[vm.sl])
 		//////////////////////////////////////////
 
-		// FORCE EXITS PROGRAM WITH NO ERROR CODE
+		// JUMP TO GIVEN LINE IF GREATER
 		case JIG:
 			a := vm.stack[vm.sl]
-			vm.stack[vm.sl] = 0
+			vm.sl--
 
+			b := vm.stack[vm.sl]
+
+			if a < b {
+				vm.pl = vm.program[vm.pl+1] - 1
+			} else {
+				vm.pl++
+			}
+		//////////////////////////////////////////
+
+		// JUMP TO GIVEN LINE IF LESS
+		case JIL:
+			a := vm.stack[vm.sl]
 			vm.sl--
 
 			b := vm.stack[vm.sl]
 
 			if a > b {
-				vm.pl = vm.program[vm.pl+1]
+				vm.pl = vm.program[vm.pl+1] - 1
 			} else {
 				vm.pl++
 			}
+		//////////////////////////////////////////
+
+		// JUMP TO GIVEN LINE IF EQUAL
+		case JIE:
+			a := vm.stack[vm.sl]
+			vm.sl--
+
+			b := vm.stack[vm.sl]
+
+			if a == b {
+				vm.pl = vm.program[vm.pl+1] - 1
+			} else {
+				vm.pl++
+			}
+		//////////////////////////////////////////
+
+		// CLEAR STACK
+		case CLRS:
+			for i := range vm.stack {
+				vm.stack[i] = 0
+			}
+
+		//////////////////////////////////////////
+
+		// CLEAR HEAP
+		case CLRH:
 
 		//////////////////////////////////////////
 
@@ -116,6 +168,10 @@ const (
 	SUB
 	GOTO
 	JIG
+	JIL
+	JIE
+	CLRS
+	CLRH
 	PRINT
 	GET
 	PUT
@@ -131,8 +187,8 @@ func (vm *stayVM) init(trace bool, stackSize int, heapSize int) {
 	vm.shouldTrace = trace
 	vm.stackSizeBytes = stackSize
 
-	vm.stackSizeBytes = 32
-	vm.stack = make([]int, vm.stackSizeBytes/4)
+	vm.stackSizeBytes = stackSize
+	vm.stack = make([]int, vm.stackSizeBytes/4+1)
 
 	vm.opps = []string{
 		"PUSH",
@@ -140,6 +196,10 @@ func (vm *stayVM) init(trace bool, stackSize int, heapSize int) {
 		"SUB",
 		"GOTO",
 		"JIG",
+		"JIL",
+		"JIE",
+		"CLRS",
+		"CLRH",
 		"PRINT",
 		"GET",
 		"PUT",
@@ -151,6 +211,10 @@ func (vm *stayVM) init(trace bool, stackSize int, heapSize int) {
 		0,
 		1,
 		1,
+		1,
+		1,
+		0,
+		0,
 		0,
 		1,
 		1,
@@ -195,9 +259,34 @@ func (vm *stayVM) check(program []int) {
 			fmt.Println(pl, " | ", "PRINT")
 		//////////////////////////////////////////
 
-		// FORCE EXITS PROGRAM WITH NO ERROR CODE
+		// JUMP IF GREATER
 		case JIG:
 			fmt.Println(pl, " | ", "JIG")
+			pl++
+		//////////////////////////////////////////
+
+		// JUMP IF LESS
+		case JIL:
+			fmt.Println(pl, " | ", "JIL")
+			pl++
+		//////////////////////////////////////////
+
+		// JUMP IF LESS
+		case JIE:
+			fmt.Println(pl, " | ", "JIE")
+			pl++
+		//////////////////////////////////////////
+
+		// CLEAR STACK
+		case CLRS:
+			fmt.Println(pl, " | ", "CLRS")
+			pl++
+		//////////////////////////////////////////
+
+		// CLEAR HEAP
+		case CLRH:
+			fmt.Println(pl, " | ", "CLRS")
+			pl++
 		//////////////////////////////////////////
 
 		// FORCE EXITS PROGRAM WITH NO ERROR CODE
@@ -205,7 +294,7 @@ func (vm *stayVM) check(program []int) {
 			fmt.Println(pl, " | ", "HALT")
 		//////////////////////////////////////////
 		default:
-			fmt.Println("STAY_VM: SYNTAX ERROR AT ", pl, " - INVALID TYPE ", `"`, program[pl], `"`)
+			fmt.Println("[ERROR] STAY_VM: SYNTAX ERROR AT ", pl, " - INVALID TYPE ", `"`, program[pl], `"`)
 		}
 		pl++
 
@@ -222,15 +311,20 @@ func (vm *stayVM) check(program []int) {
 
 func main() {
 	program := []int{
-		PUSH, 1,
-		GOTO, 4,
+		PUSH, 0,
+		PUSH, 2,
+		ADD,
+		PUSH, 128,
+		JIE, 11,
+		GOTO, 2,
 		PRINT,
+		CLRS,
 		HALT,
 	}
 
 	stay := &stayVM{}
 
-	stay.init(true, 128, 0)
+	stay.init(false, 128, 0)
 	stay.check(program)
 	stay.run(program)
 }
