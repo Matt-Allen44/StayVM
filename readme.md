@@ -1,4 +1,4 @@
-#StayVM Architecture Overview
+![StayVM](https://raw.githubusercontent.com/Matt-Allen44/StayVM/master/res/StayVM-Logo.png?token=AGDdTrZlx-wZgmm5twwgYd4szZCc0xOFks5UxM6IwA%3D%3D)
 
 
 #Running 
