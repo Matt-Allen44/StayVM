@@ -10,7 +10,8 @@ type stayVM struct {
 	program []int
 	pl      int
 
-	heap  []int
+	heap []int
+
 	stack []int
 	sl    int
 
@@ -26,10 +27,17 @@ type stayVM struct {
 func (vm *stayVM) trace() {
 	if vm.shouldTrace {
 		// Current Location in Stack/Total Size and the Stack itself
-		fmt.Println("\n[SL:", vm.sl, "/", len(vm.stack), "] -> ", vm.stack, "")
+		fmt.Println("SL:", vm.sl, " PL:", vm.pl)
+		fmt.Println("[STACK] -> ", vm.stack, "")
+
+		// Current Location in Stack/Total Size and the Stack itself
+		fmt.Println("[HEAP ] -> ", vm.heap, "")
+
+		fmt.Print("[OPP ", vm.pl, "] ->  ", vm.opps[vm.program[vm.pl]])
 		if vm.oppsArg[vm.program[vm.pl]] > 0 {
 			fmt.Print(" ", vm.program[vm.pl+1])
 		}
+		fmt.Print("\n\n\n")
 	}
 }
 
@@ -145,12 +153,27 @@ func (vm *stayVM) run(program []int) {
 			for i := range vm.stack {
 				vm.stack[i] = 0
 			}
+			vm.sl = -1
 
 		//////////////////////////////////////////
 
 		// CLEAR HEAP
 		case CLRH:
+			for i := range vm.heap {
+				vm.heap[i] = 0
+			}
+		// MOVE FROM STACK TO HEAP
+		case MOV:
+			vm.heap[vm.program[vm.pl+1]] = vm.stack[vm.sl]
+			vm.pl++
 
+		//////////////////////////////////////////
+
+		// MOVE FROM STACK TO HEAP
+		case GET:
+			vm.sl++
+			vm.stack[vm.sl] = vm.heap[vm.program[vm.pl+1]]
+			vm.pl++
 		//////////////////////////////////////////
 
 		// FORCE EXITS PROGRAM WITH NO ERROR CODE
@@ -192,6 +215,8 @@ func (vm *stayVM) init(trace bool, stackSize int, heapSize int) {
 		"GET",
 		"PUT",
 		"HALT",
+		"MOV",
+		"GET",
 	}
 	vm.oppsArg = []int{
 		1,
@@ -207,6 +232,8 @@ func (vm *stayVM) init(trace bool, stackSize int, heapSize int) {
 		1,
 		1,
 		0,
+		1,
+		1,
 	}
 }
 
@@ -275,6 +302,18 @@ func (vm *stayVM) check(program []int) {
 			pl++
 		//////////////////////////////////////////
 
+		// MOVE FROM STACK TO HEAP
+		case MOV:
+			fmt.Println(pl, " | ", "MOV")
+
+		//////////////////////////////////////////
+
+		// MOVE FROM STACK TO HEAP
+		case GET:
+			fmt.Println(pl, " | ", "GETw")
+
+		//////////////////////////////////////////
+
 		// FORCE EXITS PROGRAM WITH NO ERROR CODE
 		case HALT:
 			fmt.Println(pl, " | ", "HALT")
@@ -306,7 +345,7 @@ const (
 	CLRH
 	PRINT
 	GET
-	PUT
+	MOV
 	HALT
 )
 
@@ -328,19 +367,18 @@ func main() {
 	*/
 
 	program := []int{
-		PUSH, 12,
-		PUSH, 11,
+		PUSH, 1,
+		GET, 0,
 		ADD,
-		PUSH, 1000,
-		JIL, 2,
+		MOV, 0,
 		CLRS,
-		GOTO, 2,
+		GOTO, 0,
 		HALT,
 	}
 
 	stay := &stayVM{}
 
-	stay.init(true, 128, 0)
+	stay.init(true, 128, 128)
 	stay.check(program)
 	stay.run(program)
 }
