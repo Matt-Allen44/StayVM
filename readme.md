@@ -1,4 +1,4 @@
-![StayVM](https://raw.githubusercontent.com/Matt-Allen44/StayVM/master/res/StayVM-Logo-Smal-Text.png?token=AGDdTgsHP8JtCDuMmGbKy-pOpVxU26YDks5UxM-zwA%3D%3D)
+![StayVM](https://raw.githubusercontent.com/Matt-Allen44/StayVM/master/res/StayVM-Logo.png?token=AGDdTsoryIN2M6RflCp5xf1ghVOgrFPuks5VYamkwA%3D%3D)
 
 
 #Running 
